@@ -1,6 +1,6 @@
-resource "kubernetes_namespace" "vault" {
+resource "kubernetes_namespace" "consul" {
   metadata {
-    name = "vault"
+    name = "consul"
   }
 }
 

@@ -1,10 +1,12 @@
 resource "helm_release" "vault" {
+  depends_on = [helm_release.consul]
   name      = "vault"
-  chart     = "vault-helm"
+  repository = "https://helm.releases.hashicorp.com"
+  chart      = "vault"
   namespace = kubernetes_namespace.vault.metadata.0.name
-  version   = "v0.4.0"
+  version   = "0.23.0"
   values = [
-    templatefile("vault/values.tmpl", { replicas = var.vault_node_count })
+    templatefile("vault-helm/values.tmpl", { replicas = var.vault_node_count })
   ]
 }
 
