@@ -24,6 +24,7 @@ override.tf.json
 *_override.tf.json
 *.tfvars
 *.tfplan
+tfvaultdestroy
 
 # Include override files you do wish to add to version control using negated pattern
 #
