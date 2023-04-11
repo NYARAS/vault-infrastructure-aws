@@ -1,5 +1,26 @@
+resource "helm_release" "csi" {
+  name       = "csi"
+  namespace  = "kube-system"
+  repository = "https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts"
+  chart      = "secrets-store-csi-driver"
+  version    = var.csi_helm_version
+
+  set {
+    name  = "enableSecretRotation"
+    value = "true"
+  }
+
+  set {
+    name  = "syncSecret.enabled"
+    value = "true"
+  }
+}
+
 resource "helm_release" "vault" {
-  depends_on = [helm_release.consul]
+  depends_on = [
+    helm_release.consul,
+    helm_release.csi
+    ]
   name      = "vault"
   repository = "https://helm.releases.hashicorp.com"
   chart      = "vault"
