@@ -18,7 +18,28 @@ server:
         path = "vault"
         address = "consul-consul-server.consul:8500"
       }
-
+  ingress:
+    enabled: true
+    labels: {}
+    annotations: |
+      alb.ingress.kubernetes.io/load-balancer-name: vault
+      alb.ingress.kubernetes.io/aws-load-balancer-backend-protocol: https
+      alb.ingress.kubernetes.io/aws-load-balancer-ssl-ports: "443,8200"
+      alb.ingress.kubernetes.io/do-loadbalancer-healthcheck-path: "/ui/"
+      alb.ingress.kubernetes.io/aws-load-balancer-internal: "false"
+      alb.ingress.kubernetes.io/certificate-arn: ${ vault_acm_arn }
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/listen-ports: [{"HTTP": 8200}, {"HTTPS":443}]
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":8200},{"HTTPS":443}]'
+    ingressClassName: alb
+    pathType: Prefix
+    hosts:
+      - host: ${ vault_server_host }
+    tls:
+      - secretName: vault-secret
+        hosts:
+          - ${ vault_server_host }
 ui:
   enabled: true
   serviceType: NodePort
@@ -27,3 +48,4 @@ csi:
   enabled: true
 injector:
   enabled: true
+
