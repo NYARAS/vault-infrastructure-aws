@@ -28,8 +28,9 @@ server:
       alb.ingress.kubernetes.io/do-loadbalancer-healthcheck-path: "/ui/"
       alb.ingress.kubernetes.io/aws-load-balancer-internal: "false"
       alb.ingress.kubernetes.io/certificate-arn: ${ vault_acm_arn }
-      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/target-type: instance
       alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/security-groups: argocd-development-alb
       alb.ingress.kubernetes.io/listen-ports: [{"HTTP": 8200}, {"HTTPS":443}]
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":8200},{"HTTPS":443}]'
     ingressClassName: alb
@@ -40,6 +41,11 @@ server:
       - secretName: vault-secret
         hosts:
           - ${ vault_server_host }
+  service:
+    type: NodePort
+    port: 8200
+    targetPort: 8200
+
 ui:
   enabled: true
   serviceType: NodePort
