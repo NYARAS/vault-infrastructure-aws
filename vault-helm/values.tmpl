@@ -11,7 +11,7 @@ server:
     replicas: ${replicas}
     config: |
       ui = true
-
+      api_addr      = "https://127.0.0.1:8200"
       listener "tcp" {
         tls_disable = 1
         address = "[::]:8200"
