@@ -1,3 +1,6 @@
+global:
+  tlsDisable: false
+
 server:
   dataStorage:
     enabled: true
@@ -19,13 +22,13 @@ server:
         address = "consul-consul-server.consul:8500"
       }
   ingress:
-    enabled: true
+    enabled: false
     labels: {}
     annotations: |
       alb.ingress.kubernetes.io/load-balancer-name: vault
       alb.ingress.kubernetes.io/aws-load-balancer-backend-protocol: https
       alb.ingress.kubernetes.io/aws-load-balancer-ssl-ports: "443,8200"
-      alb.ingress.kubernetes.io/do-loadbalancer-healthcheck-path: "/ui/"
+      alb.ingress.kubernetes.io/healthcheck-path: "/ui/"
       alb.ingress.kubernetes.io/aws-load-balancer-internal: "false"
       alb.ingress.kubernetes.io/certificate-arn: ${ vault_acm_arn }
       alb.ingress.kubernetes.io/target-type: instance
@@ -41,17 +44,24 @@ server:
       - secretName: vault-secret
         hosts:
           - ${ vault_server_host }
-  service:
-    type: NodePort
-    port: 8200
-    targetPort: 8200
 
 ui:
   enabled: true
-  serviceType: NodePort
+  externalPort: 443
+  serviceType: "LoadBalancer"
+  annotations: |
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: ${ vault_acm_arn }
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/v1/sys/health"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443,8200"
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    external-dns.alpha.kubernetes.io/hostname: ${ vault_server_host }
+    external-dns.alpha.kubernetes.io/ttl: "30"
 
 csi:
   enabled: true
 injector:
   enabled: true
-
