@@ -25,9 +25,16 @@ resource "helm_release" "vault" {
   repository = "https://helm.releases.hashicorp.com"
   chart      = "vault"
   namespace = kubernetes_namespace.vault.metadata.0.name
-  version   = "0.23.0"
+  version   = "0.24.1"
   values = [
-    templatefile("vault-helm/values.tmpl", { replicas = var.vault_node_count })
+    templatefile(
+      "vault-helm/values.tmpl",
+      {
+      "replicas" = var.vault_node_count
+      "vault_server_host"              = var.vault_server_host
+      "vault_acm_arn" = data.terraform_remote_state.eks.outputs.aws_acm_certificate_arn
+      }
+      )
   ]
 }
 
@@ -40,37 +47,4 @@ data "kubernetes_service" "vault_svc" {
     namespace = "vault"
     name      = "vault-ui"
   }
-}
-
-
-// TODO - Move to vault configuration
-
-data "kubernetes_service_account" "vault_auth" {
-  depends_on = [helm_release.vault]
-
-  metadata {
-    name = "vault"
-  }
-}
-
-data "kubernetes_secret" "vault_auth" {
-  depends_on = [helm_release.vault]
-
-  metadata {
-    name = data.kubernetes_service_account.vault_auth.default_secret_name
-  }
-}
-
-resource "vault_auth_backend" "kubernetes" {
-  depends_on = [helm_release.vault]
-  type       = "kubernetes"
-}
-
-resource "vault_kubernetes_auth_backend_config" "kubernetes" {
-  depends_on             = [helm_release.vault]
-  backend                = vault_auth_backend.kubernetes.path
-  kubernetes_host        = local.kubernetes_host
-  kubernetes_ca_cert     = data.kubernetes_secret.vault_auth.data["ca.crt"]
-  token_reviewer_jwt     = data.kubernetes_secret.vault_auth.data.token
-  disable_iss_validation = "true"
 }

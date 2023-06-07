@@ -13,3 +13,13 @@ variable "csi_helm_version" {
   description = "Secrets Store CSI Driver Helm chart version"
   default     = "1.2.4"
 }
+
+variable "namespace" {
+  default = "vault"
+}
+
+variable "vault_server_host" {
+  type = string
+  description = "Domain to access vault ui."
+  default = "vault.calvineotieno.com"
+}
