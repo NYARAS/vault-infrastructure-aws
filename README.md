@@ -1,6 +1,12 @@
 # vault-infrastructure-aws
 Deploy Hashicorp Vault+Consul to dynamically generate short-lived credentials per pod.
 
+### Vault Tokens
+- `Service token` is the general token that most people talk about when referring to a token in Vault.
+- `Batch token` is an encrypted binary large object (blobs) that carries just enough information for authentication.
+- `Periodic service tokens` have a TTL, but no max TTL.
+- `Orphan tokens` are not children of their parent; therefore, do not expire when their parent does.
+
 ### Vault Auth Methods
 
 Different auth methods have different intentions and purposes. The following defines what different auth methods are intended for within Vault:
