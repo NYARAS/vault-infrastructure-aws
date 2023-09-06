@@ -4,8 +4,8 @@ Deploy Hashicorp Vault+Consul to dynamically generate short-lived credentials pe
 ### Vault Auth Methods
 
 Different auth methods have different intentions and purposes. The following defines what different auth methods are intended for within Vault:
-‣Machine-oriented: AppRole, TLS, tokens, platform-specific methods (cloud, k8s)
-‣Operator-oriented: Github, LDAP, username & password
+-  Machine-oriented: AppRole, TLS, tokens, platform-specific methods (cloud, k8s)
+-  Operator-oriented: Github, LDAP, username & password
 
 ### Vault Agent is a client daemon that provides the following features:
 
