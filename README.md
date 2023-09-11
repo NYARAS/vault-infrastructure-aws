@@ -10,6 +10,13 @@ Deploy Hashicorp Vault+Consul to dynamically generate short-lived credentials pe
 #### TTL and Max TTL
 The `TTL` defines when the token will expire. If the token reaches its TTL, it will be immediately revoked by Vault. The `Max TTL` defines the maximum timeframe for which the token can be renewed. Once the max TTL is reached, the token cannot be renewed any longer and will be revoked.
 
+#### Understanding Vault KV delete commands
+The `kv delete` command deletes the data for the provided path in the key/value secrets engine. If using K/V Version 2, its versioned data will not be fully removed, but marked as deleted and will no longer be returned in normal get requests.
+
+The `kv destroy` command permanently removes the specified versions' data from the key/value secrets engine. If no key exists at the path, no action is taken.
+
+The `kv metadata delete` command deletes all versions and metadata for the provided key.
+
 ### Vault Auth Methods
 
 Different auth methods have different intentions and purposes. The following defines what different auth methods are intended for within Vault:
