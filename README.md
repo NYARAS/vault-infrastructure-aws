@@ -7,6 +7,9 @@ Deploy Hashicorp Vault+Consul to dynamically generate short-lived credentials pe
 - `Periodic service tokens` have a TTL, but no max TTL.
 - `Orphan tokens` are not children of their parent; therefore, do not expire when their parent does.
 
+#### TTL and Max TTL
+The `TTL` defines when the token will expire. If the token reaches its TTL, it will be immediately revoked by Vault. The `Max TTL` defines the maximum timeframe for which the token can be renewed. Once the max TTL is reached, the token cannot be renewed any longer and will be revoked.
+
 ### Vault Auth Methods
 
 Different auth methods have different intentions and purposes. The following defines what different auth methods are intended for within Vault:
