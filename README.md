@@ -57,6 +57,20 @@ The big differences between the two types of replication include:
 
   * Performance replication can respond to client requests, but it handles its own tokens and leases. Any tokens or leases that are created on the primary cluster are NOT replicated to the secondary servers. Therefore if you failover to the secondary cluster, applications would need to re-authenticate because the existing tokens would not be valid on the secondary cluster.
 
-Learn tutorial on Disaster Recovery Replication
+### Understanding Vault Paths (sys/mount)
+When you are using the UI, you will likely need to add additional LIST permissions to the mount (sys/mounts) and then LIST for every path up to the desired secret. For example, the following policy would provide LIST access to everything needed, including seeing the KV mount and all paths beneath it.
 
-Setting up Performance Replication for Vault
+path "kv/apps/webapp01" {
+  capabilities = ["read", "create", "update", "list"]
+}
+ 
+path "sys/mounts" {
+  capabilities = ["list"]
+}
+ 
+path "kv/*" {
+  capabilities = ["list"]
+}
+
+
+
