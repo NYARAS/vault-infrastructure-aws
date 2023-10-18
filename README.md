@@ -37,3 +37,8 @@ When tokens are created, a token accessor is also created and returned. This acc
   - Look up a token's capabilities on a path
   - Renew the token
   - Revoke the token
+
+### Token Lookup
+To view information about a token, the command vault token lookup can be used on the CLI. This command will display lots of information and metadata associated with a particular token. This information includes TTL, number of uses, type of token, policies, and more.
+
+There are two different ways you can use the vault token lookup command. If you are logged into Vault and want to check the current token being used, you can just use vault token lookup. If you want to check a different token, you can use vault token lookup <token>. You can also use -accessor flag if you only know the accessor and not the token.
