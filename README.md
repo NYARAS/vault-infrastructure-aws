@@ -73,4 +73,8 @@ path "kv/*" {
 }
 
 
+### Vault has two built-in policies:
 
+The `root` policy is created by default – it provides superuser privileges with complete and full access to everything in Vault. You cannot change nor delete this policy. This policy is attached to all root tokens.
+
+The `default` policy is created by default and provides common permissions for tokens. You can change this policy but it cannot be deleted. It is automatically attached to all non-root tokens by default (this behavior can be changed if needed)
