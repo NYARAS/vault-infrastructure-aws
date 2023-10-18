@@ -42,3 +42,21 @@ When tokens are created, a token accessor is also created and returned. This acc
 To view information about a token, the command vault token lookup can be used on the CLI. This command will display lots of information and metadata associated with a particular token. This information includes TTL, number of uses, type of token, policies, and more.
 
 There are two different ways you can use the vault token lookup command. If you are logged into Vault and want to check the current token being used, you can just use vault token lookup. If you want to check a different token, you can use vault token lookup <token>. You can also use -accessor flag if you only know the accessor and not the token.
+
+
+### Vault DR
+There are two types of replication that are available to Vault Enterprise customers:
+
+    * Disaster Recovery Replication
+
+    * Performance Replication
+
+The big differences between the two types of replication include:
+
+  * DR replication will replicate all tokens and leases from the primary cluster to the secondary. This means tokens that were valid for the primary cluster are valid for the secondary cluster when it is promoted. However, a DR replication cluster does NOT respond to clients unless it is promoted to a primary.
+
+  * Performance replication can respond to client requests, but it handles its own tokens and leases. Any tokens or leases that are created on the primary cluster are NOT replicated to the secondary servers. Therefore if you failover to the secondary cluster, applications would need to re-authenticate because the existing tokens would not be valid on the secondary cluster.
+
+Learn tutorial on Disaster Recovery Replication
+
+Setting up Performance Replication for Vault
