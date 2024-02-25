@@ -80,3 +80,6 @@ path "kv/*" {
 The `root` policy is created by default – it provides superuser privileges with complete and full access to everything in Vault. You cannot change nor delete this policy. This policy is attached to all root tokens.
 
 The `default` policy is created by default and provides common permissions for tokens. You can change this policy but it cannot be deleted. It is automatically attached to all non-root tokens by default (this behavior can be changed if needed)
+
+
+The `vault operator step-down` forces the Vault server at the given address to step down from active duty. While the affected node will have a delay before attempting to acquire the leader lock again, if no other Vault nodes acquire the lock beforehand, it is possible for the same node to re-acquire the lock and become active again.
