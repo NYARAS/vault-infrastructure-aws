@@ -88,3 +88,5 @@ The `vault operator step-down` forces the Vault server at the given address to s
 Vault has many secrets engines that can generate dynamic credentials, including AWS, Azure, and database secrets engines. The key/value secret engine is used to store data, the transit secret engine is used to encrypt data.
 
 `allowed_parameters` can be used to permit a list of keys and values that are permitted on the given path. Setting a parameter with a value of the empty list allows the parameter to contain any value.
+
+`Batch tokens` are lightweight and scalable and include just enough information to used with Vault. They are generally used for ephemeral, high-performance workloads, such as encrypting data.
