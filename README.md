@@ -90,3 +90,7 @@ Vault has many secrets engines that can generate dynamic credentials, including 
 `allowed_parameters` can be used to permit a list of keys and values that are permitted on the given path. Setting a parameter with a value of the empty list allows the parameter to contain any value.
 
 `Batch tokens` are lightweight and scalable and include just enough information to used with Vault. They are generally used for ephemeral, high-performance workloads, such as encrypting data.
+
+
+### Vault Periodic Tokens
+When having a token be revoked would be problematic, `root` or `sudo` users have the ability to generate `periodic tokens`. Periodic tokens have a `TTL`, but no max `TTL`. Periodic tokens may live for an infinite amount of time, so long as they are renewed within their TTL. Usage - You have a long-running app that can not handle the regeneration of a token or secret.
