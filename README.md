@@ -94,3 +94,5 @@ Vault has many secrets engines that can generate dynamic credentials, including 
 
 ### Vault Periodic Tokens
 When having a token be revoked would be problematic, `root` or `sudo` users have the ability to generate `periodic tokens`. Periodic tokens have a `TTL`, but no max `TTL`. Periodic tokens may live for an infinite amount of time, so long as they are renewed within their TTL. Usage - You have a long-running app that can not handle the regeneration of a token or secret.
+
+Vault supports `AWS`, `Azure`, `Google Cloud`, and `Alibaba Cloud` out of the box for secrets engines.
