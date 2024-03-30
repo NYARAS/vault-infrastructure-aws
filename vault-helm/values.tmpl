@@ -20,22 +20,15 @@ server:
         path = "vault"
         address = "consul-consul-server.consul:8500"
       }
+      service_registration "kubernetes" {}
   ingress:
-    enabled: false
+    enabled: true
     labels: {}
     annotations: |
-      alb.ingress.kubernetes.io/load-balancer-name: vault
-      alb.ingress.kubernetes.io/aws-load-balancer-backend-protocol: https
-      alb.ingress.kubernetes.io/aws-load-balancer-ssl-ports: "443,8200"
-      alb.ingress.kubernetes.io/healthcheck-path: "/ui/"
-      alb.ingress.kubernetes.io/aws-load-balancer-internal: "false"
-      alb.ingress.kubernetes.io/certificate-arn: ${ vault_acm_arn }
-      alb.ingress.kubernetes.io/target-type: instance
-      alb.ingress.kubernetes.io/scheme: internet-facing
-      alb.ingress.kubernetes.io/security-groups: argocd-development-alb
-      alb.ingress.kubernetes.io/listen-ports: [{"HTTP": 8200}, {"HTTPS":443}]
-      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":8200},{"HTTPS":443}]'
-    ingressClassName: alb
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      cert-manager.io/cluster-issuer: letsencrypt
+      kubernetes.io/ingress.class: nginx
+    ingressClassName: nginx
     pathType: Prefix
     hosts:
       - host: ${ vault_server_host }
@@ -47,18 +40,9 @@ server:
 ui:
   enabled: true
   externalPort: 443
-  serviceType: "LoadBalancer"
-  annotations: |
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: ${ vault_acm_arn }
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
-    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/v1/sys/health"
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443,8200"
-    service.beta.kubernetes.io/aws-load-balancer-type: nlb
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
-    service.beta.kubernetes.io/aws-load-balancer-type: external
-    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
-    external-dns.alpha.kubernetes.io/hostname: ${ vault_server_host }
-    external-dns.alpha.kubernetes.io/ttl: "30"
+  serviceType: "ClusterIP"
+  serviceNodePort: null
+  targetPort: 8200
 
 csi:
   enabled: true
