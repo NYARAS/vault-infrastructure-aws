@@ -32,7 +32,6 @@ resource "helm_release" "vault" {
       {
       "replicas" = var.vault_node_count
       "vault_server_host"              = var.vault_server_host
-      "vault_acm_arn" = data.terraform_remote_state.eks.outputs.aws_acm_certificate_arn
       }
       )
   ]
