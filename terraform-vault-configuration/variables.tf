@@ -17,3 +17,14 @@ variable "DB" {
   description = "postgresql URL"
   default = "test"
 }
+
+variable "vault_endpoint" {
+  type = string
+  description = "Endpoint of Vault environment"
+}
+
+variable "vault_token" {
+  type = string
+  description = "Vault token used to authenticate to Vault"
+  sensitive = true
+}
