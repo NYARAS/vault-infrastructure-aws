@@ -7,3 +7,9 @@ provider "kubernetes" {
     command     = "aws"
   }
 }
+
+// Add vault provider config
+provider "vault" {
+  address = var.vault_endpoint
+  token   = var.vault_token
+}
