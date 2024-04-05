@@ -84,6 +84,12 @@ resource "vault_policy" "reader_policy" {
   policy = data.vault_policy_document.reader_policy.hcl
 }
 
+resource "vault_policy" "test-app_ro" {
+  name   = "guardian-ro"
+  policy = file("policies/guardian-ro.hcl")
+}
+
+
 resource "vault_auth_backend" "kubernetes" {
   type = "kubernetes"
 }
@@ -97,12 +103,11 @@ resource "vault_kubernetes_auth_backend_role" "app" {
   token_policies                   = ["reader"]
 }
 
-provider "kubernetes" {
-  host                   = data.terraform_remote_state.eks.outputs.cluster_endpoint
-  cluster_ca_certificate = base64decode(data.terraform_remote_state.eks.outputs.cluster_certificate_authority_data)
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    args        = ["eks", "get-token", "--cluster-name", "${data.terraform_remote_state.eks.outputs.cluster_name}"]
-    command     = "aws"
-  }
+resource "vault_kubernetes_auth_backend_role" "guardian-ro" {
+  backend                          = vault_auth_backend.kubernetes.path
+  role_name                        = "test-app"
+  bound_service_account_names      = ["test-app-sa"]
+  bound_service_account_namespaces = ["default"]
+  token_ttl                        = 86400
+  token_policies                   = ["test-app-ro"]
 }
