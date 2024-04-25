@@ -85,8 +85,8 @@ resource "vault_policy" "reader_policy" {
 }
 
 resource "vault_policy" "test-app_ro" {
-  name   = "guardian-ro"
-  policy = file("policies/guardian-ro.hcl")
+  name   = "test-app-ro"
+  policy = file("policies/test-app-ro.hcl")
 }
 
 
@@ -103,7 +103,7 @@ resource "vault_kubernetes_auth_backend_role" "app" {
   token_policies                   = ["reader"]
 }
 
-resource "vault_kubernetes_auth_backend_role" "guardian-ro" {
+resource "vault_kubernetes_auth_backend_role" "test-app-ro" {
   backend                          = vault_auth_backend.kubernetes.path
   role_name                        = "test-app"
   bound_service_account_names      = ["test-app-sa"]
