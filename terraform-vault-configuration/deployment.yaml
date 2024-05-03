@@ -25,9 +25,9 @@ spec:
       serviceAccountName: test-app
       containers:
       - name:  test-app
-        image: docker.io/devopscalvine/go-mux:1.9
+        image: docker.io/devopscalvine/go-mux:1.1
         command: ["/bin/sh"]
-        args: ["-c", ". /vault/secrets/app && ./app"]
+        args: ["-c", ". /vault/secrets/app && ./server"]
         resources:
           limits:
             memory: "128Mi"
