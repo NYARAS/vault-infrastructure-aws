@@ -15,8 +15,8 @@ spec:
         vault.hashicorp.com/agent-inject: 'true'
         vault.hashicorp.com/role: 'test-app'
         vault.hashicorp.com/agent-inject-status: "update"
-        vault.hashicorp.com/agent-inject-secret-app: 'apps/data/test-app'
-        vault.hashicorp.com/agent-inject-template-app: |
+        vault.hashicorp.com/agent-inject-secret-test-app: 'apps/data/test-app'
+        vault.hashicorp.com/agent-inject-template-test-app: |
           {{ with secret "apps/data/test-app" }}
           {{ range $k, $v := .Data.data }}
             export {{ $k }}={{ $v }}
@@ -26,14 +26,14 @@ spec:
       serviceAccountName: test-app
       containers:
       - name:  test-app
-        image: docker.io/devopscalvine/go-mux:1.1
+        image: devopscalvine/go-mux:1.1
         command: ["/bin/sh"]
-        args: ["-c", ". /vault/secrets/app && ./server"]
+        args: ["-c", ". /vault/secrets/test-app && ./server"]
         resources:
           limits:
             memory: "128Mi"
             cpu: "500m"
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
 ---
