@@ -8,6 +8,8 @@ server:
     enabled: true
   ha:
     enabled: true
+    raft:
+      enabled: true
     replicas: ${replicas}
     config: |
       ui = true
@@ -16,9 +18,10 @@ server:
         address = "[::]:8200"
         cluster_address = "[::]:8201"
       }
-      storage "consul" {
-        path = "vault"
-        address = "consul-consul-server.consul:8500"
+      # Raft storage
+      storage "raft" {
+        path    = "/vault/data"
+        node_id = "node1"
       }
       service_registration "kubernetes" {}
   ingress:
