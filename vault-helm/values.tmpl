@@ -2,28 +2,51 @@ global:
   tlsDisable: true
 
 server:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: ${vault_iam_role_arn}
   dataStorage:
     enabled: true
   standalone:
-    enabled: true
+    enabled: false
   ha:
     enabled: true
-    raft:
-      enabled: true
     replicas: ${replicas}
     config: |
       ui = true
+
       listener "tcp" {
         tls_disable = 1
         address = "[::]:8200"
         cluster_address = "[::]:8201"
       }
-      # Raft storage
-      storage "raft" {
-        path    = "/vault/data"
-        node_id = "node1"
+      seal "awskms" {
+        region = "${region}"
+        kms_key_id = "${kms_key_id}"
       }
-      service_registration "kubernetes" {}
+  
+      storage "raft" {
+        path = "/vault/data"
+      }
+    raft:
+      enabled: true
+      setNodeId: true
+      config: |
+        ui = true
+  
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+        seal "awskms" {
+          region = "${region}"
+          kms_key_id = "${kms_key_id}"
+        }
+        storage "raft" {
+          path = "/vault/data"
+        }
+    service_registration "kubernetes" {}
   ingress:
     enabled: true
     labels: {}
