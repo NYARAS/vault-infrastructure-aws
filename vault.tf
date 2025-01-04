@@ -94,3 +94,12 @@ module "vault_service_account_role" {
     Name = var.service_account_role_name
   }
 }
+
+resource "aws_kms_key" "vault" {
+  description = "Used for Vault."
+}
+
+resource "aws_kms_alias" "vault" {
+  name          = "alias/vault"
+  target_key_id = aws_kms_key.vault.key_id
+}
