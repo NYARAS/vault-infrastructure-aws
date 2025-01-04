@@ -19,23 +19,23 @@ resource "helm_release" "csi" {
 resource "helm_release" "vault" {
   depends_on = [
     helm_release.csi
-    ]
-  name      = "vault"
+  ]
+  name       = "vault"
   repository = "https://helm.releases.hashicorp.com"
   chart      = "vault"
-  namespace = kubernetes_namespace.vault.metadata.0.name
-  version   = "0.29.0"
+  namespace  = kubernetes_namespace.vault.metadata.0.name
+  version    = "0.29.0"
   values = [
     templatefile(
       "vault-helm/values.tmpl",
       {
-      "replicas" = var.vault_node_count
-      "vault_server_host"              = var.vault_server_host
-       kms_key_id              = aws_kms_key.vault.key_id
-       region = var.region
-       vault_iam_role_arn      = module.vault_service_account_role.iam_role_arn
+        "replicas"          = var.vault_node_count
+        "vault_server_host" = var.vault_server_host
+        kms_key_id          = aws_kms_key.vault.key_id
+        region              = var.region
+        vault_iam_role_arn  = module.vault_service_account_role.iam_role_arn
       }
-      )
+    )
   ]
 }
 

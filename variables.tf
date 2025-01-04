@@ -1,10 +1,10 @@
 variable "vault_node_count" {
-    description = "The number of vault replicas to run."
+  description = "The number of vault replicas to run."
   default     = "1"
 }
 
 variable "consul_node_count" {
-    description = "The number of consul replicas to run."
+  description = "The number of consul replicas to run."
   default     = "1"
 }
 
@@ -19,7 +19,25 @@ variable "namespace" {
 }
 
 variable "vault_server_host" {
-  type = string
+  type        = string
   description = "Domain to access vault ui."
-  default = "vault.calvineotieno.com"
+  default     = "vault.calvineotieno.com"
+}
+
+variable "region" {
+  description = "AWS region to create resources in"
+  type        = string
+  default     = "eu-west-1"
+}
+
+variable "service_account_policy_name" {
+  description = "(Optional) The name of the IAM policy for the Vault service account. Defaults to `vault-service-account-policy`."
+  type        = string
+  default     = "vault-service-account-policy"
+}
+
+variable "service_account_role_name" {
+  description = "(Optional) The name of the IAM role for the Vault service account. Defaults to `vault-service-account-role`."
+  type        = string
+  default     = "vault-service-account-role"
 }
