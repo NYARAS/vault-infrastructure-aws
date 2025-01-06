@@ -21,7 +21,7 @@ variable "namespace" {
 variable "vault_server_host" {
   type        = string
   description = "Domain to access vault ui."
-  default     = "vault.calvineotieno.com"
+  default     = "vault.example.com"
 }
 
 variable "region" {
@@ -40,4 +40,13 @@ variable "service_account_role_name" {
   description = "(Optional) The name of the IAM role for the Vault service account. Defaults to `vault-service-account-role`."
   type        = string
   default     = "vault-service-account-role"
+}
+
+variable "gitlab_pipeline_aws_assume_role" {
+  default = "gitlab-pipeline-aws-assume-role"
+}
+
+variable "aws_acm" {
+  type = string
+  description = "AWS Certificate Manager ARN."
 }
