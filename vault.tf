@@ -33,6 +33,7 @@ resource "helm_release" "vault" {
         "vault_server_host" = var.vault_server_host
         kms_key_id          = aws_kms_key.vault.key_id
         region              = var.region
+        aws_acm = var.aws_acm
         vault_iam_role_arn  = module.vault_service_account_role.iam_role_arn
       }
     )
@@ -102,4 +103,34 @@ resource "aws_kms_key" "vault" {
 resource "aws_kms_alias" "vault" {
   name          = "alias/vault"
   target_key_id = aws_kms_key.vault.key_id
+}
+
+resource "aws_iam_role" "pipeline_role" {
+  name               = var.gitlab_pipeline_aws_assume_role
+  assume_role_policy = data.aws_iam_policy_document.test_trust_policy.json
+
+  inline_policy {
+    name   = "CustomPipelinePolicy"
+    policy = data.aws_iam_policy_document.inline_policy.json
+  }
+}
+data "aws_iam_policy_document" "pipeline_trust_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [module.vault_service_account_role.iam_role_arn]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "inline_policy" {
+  statement {
+    actions   = [
+      "ec2:*",
+      "rds:*",
+      ]
+    resources = ["*"]
+  }
 }
