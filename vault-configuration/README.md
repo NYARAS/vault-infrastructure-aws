@@ -18,7 +18,7 @@ For the full implementation refer to this [Hashicorp Vault Part 2 - Secure A
 
 Create Terraform `terraform.tfvars` file with values that match your environment.
 
-```JSON
+```sh
 gitlab_pipeline_aws_assume_role="arn:aws:iam::<AWS_ACCOUNT_ID>:role/gitlab-pipeline-aws-assume-role"
 vault_endpoint = "VAULT_ENDPOINT"
 vault_token = "VAULT_TOKEN"
@@ -56,43 +56,43 @@ variables:
   TF_VAR_pipeline_vault_role: recipe-app-api-proxy-pipeline
   TF_VAR_pipeline_vault_backend: recipe-app-api-proxy-aws
 
-before_script:
-  - apk --update add curl unzip bash
-  - cd /usr/local/bin/
-  - curl https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_386.zip --output terraform.zip
-  - unzip terraform.zip
-  - curl https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_386.zip --output vault.zip
-  - unzip vault.zip
-  - cd -
-  - terraform version
-  - vault version
-
-vault_auth:
-  stage: test
+.id_tokens: &id_tokens
   id_tokens:
    VAULT_ID_TOKEN:
     aud: $VAULT_ADDR
-  script:
+
+.setup-builder: &setup_builder
+  extends: .id_tokens
+  image: europe-west4-docker.pkg.dev/nsw-production-environment/infrastructure/infrastructure-helm3:latest
+  before_script:
+    - apk --update add curl unzip bash
+    - cd /usr/local/bin/
+    - curl https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_386.zip --output terraform.zip
+    - unzip terraform.zip
+    - curl https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_386.zip --output vault.zip
+    - unzip vault.zip
+    - cd -
+    - terraform version
+    - vault version
     - export VAULT_TOKEN="$(vault write -field=token auth/jwt/login role=$TF_VAR_pipeline_vault_role jwt=$VAULT_ID_TOKEN)"
+
+vault_auth:
+  stage: test
+  <<: *setup_builder
+  script:
     - vault token lookup
 
 plan:
   stage: plan
   artifacts:
     paths:
-      - terraform
+      - terraform/project/
     expire_in: 1 day
-  id_tokens:
-   VAULT_ID_TOKEN:
-    aud: $VAULT_ADDR
+  <<: *setup_builder
   script:
-    - echo $CI_COMMIT_REF_NAME
-    - echo $CI_COMMIT_REF_PROTECTED
-    - export VAULT_TOKEN="$(vault write -field=token auth/jwt/login role=$TF_VAR_pipeline_vault_role jwt=$VAULT_ID_TOKEN)"
     # Now use the VAULT_TOKEN to provide child token and execute Terraform in AWS env
     - cd terraform
     - export TF_VAR_vault_addr=$VAULT_ADDR
-    - export TF_VAR_vault_agent_version=$VAULT_VERSION
     - vault token lookup
     - terraform init
     - terraform plan
@@ -100,30 +100,22 @@ plan:
 apply:
   stage: deploy
   when: manual
-  id_tokens:
-   VAULT_ID_TOKEN:
-    aud: $VAULT_ADDR
+  <<: *setup_builder
   script:
-    - export VAULT_TOKEN="$(vault write -field=token auth/jwt/login role=$TF_VAR_pipeline_vault_role jwt=$VAULT_ID_TOKEN)"
     # Now use the VAULT_TOKEN to provide child token and execute Terraform in AWS env
     - cd terraform
     - export TF_VAR_vault_addr=$VAULT_ADDR
-    - export TF_VAR_vault_agent_version=$VAULT_VERSION
     - terraform init
     - terraform apply -auto-approve
 
 destroy:
   stage: deploy
   when: manual
-  id_tokens:
-   VAULT_ID_TOKEN:
-    aud: $VAULT_ADDR
+  <<: *setup_builder
   script:
-    - export VAULT_TOKEN="$(vault write -field=token auth/jwt/login role=$TF_VAR_pipeline_vault_role jwt=$VAULT_ID_TOKEN)"
     # Now use the VAULT_TOKEN to provide child token and execute Terraform in AWS env
     - cd terraform
     - export TF_VAR_vault_addr=$VAULT_ADDR
-    - export TF_VAR_vault_agent_version=$VAULT_VERSION
     - terraform init
     - terraform destroy -auto-approve
 ```
