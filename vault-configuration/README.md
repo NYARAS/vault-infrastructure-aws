@@ -4,7 +4,7 @@ Configure HCP Vault
 ### Secure AWS Credentials in Gitlab CI/CD with Terraform
 Configure Hashicorp Vault to dynamically generate short-lived credentials for Gitlab CI/CD deployment to AWS.
 
-For the full implementation refer to this [Hashicorp Vault Part 2 - Secure AWS Credentials in Gitlab CI/CD with Terraform]()
+For the full implementation refer to this [Hashicorp Vault Part 2 - Secure AWS Credentials in Gitlab CI/CD with Terraform](https://medium.com/@calvineotieno010/hashicorp-vault-part-2-secure-aws-credentials-in-gitlab-ci-cd-with-terraform-4c6df31b2097)
 
 ### Prerequisites
 
