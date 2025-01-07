@@ -61,7 +61,7 @@ variables:
    VAULT_ID_TOKEN:
     aud: $VAULT_ADDR
 
-.setup-builder: &setup_builder
+.setup: &setup
   extends: .id_tokens
   image: europe-west4-docker.pkg.dev/nsw-production-environment/infrastructure/infrastructure-helm3:latest
   before_script:
@@ -78,7 +78,7 @@ variables:
 
 vault_auth:
   stage: test
-  <<: *setup_builder
+  <<: *setup
   script:
     - vault token lookup
 
@@ -88,7 +88,7 @@ plan:
     paths:
       - terraform/project/
     expire_in: 1 day
-  <<: *setup_builder
+  <<: *setup
   script:
     # Now use the VAULT_TOKEN to provide child token and execute Terraform in AWS env
     - cd terraform
@@ -100,7 +100,7 @@ plan:
 apply:
   stage: deploy
   when: manual
-  <<: *setup_builder
+  <<: *setup
   script:
     # Now use the VAULT_TOKEN to provide child token and execute Terraform in AWS env
     - cd terraform
@@ -111,7 +111,7 @@ apply:
 destroy:
   stage: deploy
   when: manual
-  <<: *setup_builder
+  <<: *setup
   script:
     # Now use the VAULT_TOKEN to provide child token and execute Terraform in AWS env
     - cd terraform
