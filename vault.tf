@@ -108,11 +108,6 @@ resource "aws_kms_alias" "vault" {
 resource "aws_iam_role" "pipeline_role" {
   name               = var.gitlab_pipeline_aws_assume_role
   assume_role_policy = data.aws_iam_policy_document.pipeline_trust_policy.json
-
-  inline_policy {
-    name   = "CustomPipelinePolicy"
-    policy = data.aws_iam_policy_document.inline_policy.json
-  }
 }
 data "aws_iam_policy_document" "pipeline_trust_policy" {
   statement {
@@ -125,11 +120,20 @@ data "aws_iam_policy_document" "pipeline_trust_policy" {
   }
 }
 
-data "aws_iam_policy_document" "inline_policy" {
-  statement {
-    actions   = [
-      "ec2:*",
-      ]
-    resources = ["*"]
-  }
+resource "aws_iam_role_policy" "pipeline_policy" {
+  name = "CustomPipelinePolicy"
+  role = aws_iam_role.pipeline_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:*",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
 }
