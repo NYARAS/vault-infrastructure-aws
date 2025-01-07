@@ -3,10 +3,9 @@ data "terraform_remote_state" "eks" {
   backend = "s3"
 
   config = {
-    bucket               = "devops-demo.tfstate"
-    key                  = "argocdinfra.json"
-    region               = "eu-west-1"
-    workspace_key_prefix = "environment"
-    dynamodb_table       = "devops-demo.tfstate.lock"
+    bucket         = var.remote_state.eks.bucket
+    key            = var.remote_state.eks.key
+    region         = var.remote_state.eks.region
+    dynamodb_table = var.remote_state.eks.dynamodb_table
   }
 }
