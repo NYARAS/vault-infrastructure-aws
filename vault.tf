@@ -33,7 +33,7 @@ resource "helm_release" "vault" {
         "vault_server_host" = var.vault_server_host
         kms_key_id          = aws_kms_key.vault.key_id
         region              = var.region
-        aws_acm = var.aws_acm
+        aws_acm             = var.aws_acm
         vault_iam_role_arn  = module.vault_service_account_role.iam_role_arn
       }
     )

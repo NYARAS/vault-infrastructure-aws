@@ -1,3 +1,27 @@
+variable "remote_state" {
+  description = "Remote state data for eks"
+  type = object({
+    eks = object({
+      bucket               = string
+      key                  = string
+      region               = string
+      workspace_key_prefix = optional(string)
+      dynamodb_table       = string
+    })
+  })
+}
+variable "backend_config" {
+  description = "Remote state data for eks"
+  type = object({
+    s3 = object({
+      bucket               = string
+      key                  = string
+      region               = string
+      workspace_key_prefix = optional(string)
+      dynamodb_table       = string
+    })
+  })
+}
 variable "vault_node_count" {
   description = "The number of vault replicas to run."
   default     = "1"
@@ -47,6 +71,6 @@ variable "gitlab_pipeline_aws_assume_role" {
 }
 
 variable "aws_acm" {
-  type = string
+  type        = string
   description = "AWS Certificate Manager ARN."
 }
