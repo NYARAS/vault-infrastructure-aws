@@ -107,7 +107,7 @@ resource "aws_kms_alias" "vault" {
 
 resource "aws_iam_role" "pipeline_role" {
   name               = var.gitlab_pipeline_aws_assume_role
-  assume_role_policy = data.aws_iam_policy_document.test_trust_policy.json
+  assume_role_policy = data.aws_iam_policy_document.pipeline_trust_policy.json
 
   inline_policy {
     name   = "CustomPipelinePolicy"
@@ -129,7 +129,6 @@ data "aws_iam_policy_document" "inline_policy" {
   statement {
     actions   = [
       "ec2:*",
-      "rds:*",
       ]
     resources = ["*"]
   }
