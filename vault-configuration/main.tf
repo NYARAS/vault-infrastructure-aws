@@ -1,5 +1,5 @@
 resource "vault_policy" "reader_policy" {
-  name = "reader"
+  name   = "reader"
   policy = data.vault_policy_document.reader_policy.hcl
 }
 
