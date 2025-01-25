@@ -1,0 +1,120 @@
+global:
+  enabled: true
+  tlsDisable: false
+
+injector:
+  enabled: true
+
+server:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: ${vault_iam_role_arn}
+  logLevel: "debug"
+  dataStorage:
+    enabled: true
+    size: 4Gi
+    mountPath: "/vault/data"
+    storageClass: null
+    accessMode: ReadWriteOnce
+    annotations: {}
+
+  auditStorage:
+    enabled: true
+
+  standalone:
+    enabled: false
+
+  #* TLS configuration
+  extraEnvironmentVars: {}
+  volumes:
+      - name: userconfig-vault-ha-tls
+        secret:
+          defaultMode: 420
+          secretName: vault-ha-tls
+  volumeMounts:
+    - mountPath: /vault/userconfig/vault-ha-tls
+      name: userconfig-vault-ha-tls
+      readOnly: true
+  ha:
+    enabled: true
+    replicas: ${replicas}
+    raft:
+      enabled: true
+      setNodeId: false
+      config: |
+        ui = true
+
+        listener "tcp" {
+          tls_disable = 0
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+          tls_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
+          tls_key_file  = "/vault/userconfig/vault-ha-tls/vault.key"
+          tls_client_ca_file = "/vault/userconfig/vault-ha-tls/vault.ca"
+        }
+        listener "tcp" {
+          address     = "0.0.0.0:8202"
+          tls_disable = "true"
+        }
+        seal "awskms" {
+          region = "${region}"
+          kms_key_id = "${kms_key_id}"
+        }
+        storage "raft" {
+          path = "/vault/data"
+          retry_join {
+            leader_api_addr = "http://vault-0.vault-internal:8200"
+            leader_client_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
+            leader_client_key_file = "/vault/userconfig/vault-ha-tls/vault.key"
+            }
+            retry_join {
+              leader_api_addr = "http://vault-1.vault-internal:8200"
+              leader_client_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
+              leader_client_key_file = "/vault/userconfig/vault-ha-tls/vault.key"
+            }
+            retry_join {
+              leader_api_addr = "http://vault-2.vault-internal:8200"
+              leader_client_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
+              leader_client_key_file = "/vault/userconfig/vault-ha-tls/vault.key"
+            }
+        }
+        disable_mlock = true
+        service_registration "kubernetes" {}
+
+  ingress:
+    enabled: false
+    labels: {}
+    annotations: |
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      cert-manager.io/cluster-issuer: letsencrypt
+      kubernetes.io/ingress.class: nginx
+    ingressClassName: nginx
+    pathType: Prefix
+    hosts:
+      - host: ${ vault_server_host }
+    tls:
+      - secretName: vault-secret
+        hosts:
+          - ${ vault_server_host }
+
+ui:
+  enabled: false
+  externalPort: 443
+  serviceType: "LoadBalancer"
+  serviceNodePort: null
+  annotations: |
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert:  ${ aws_acm }
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443,8200"
+    service.beta.kubernetes.io/do-loadbalancer-healthcheck-path: "/ui/"
+    service.beta.kubernetes.io/aws-load-balancer-internal: "false"
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+
+csi:
+  enabled: true
+injector:
+  enabled: true
