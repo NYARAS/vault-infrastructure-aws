@@ -21,10 +21,5 @@ terraform {
   }
 
   backend "s3" {
-    bucket               = var.backend_config.s3.bucket
-    key                  = var.backend_config.s3.key
-    region               = var.backend_config.s3.region
-    workspace_key_prefix = var.backend_config.s3.workspace_key_prefix
-    dynamodb_table       = var.backend_config.s3.dynamodb_table
   } // partial backend configuration
 }
