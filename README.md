@@ -111,3 +111,54 @@ Vault supports `AWS`, `Azure`, `Google Cloud`, and `Alibaba Cloud` out of the bo
 - Vault injector pod will set secret into application pod.
 - Vault writes audit logs (without any sensitive data) into persistent EBS volume.
 - Data encrypted at rest and in transit.
+
+
+### Prerequisites
+
+- Knowledge working with Terraform
+- Knowledge working with AWS and AWS Account. A trial account is enough
+- Knowledge working with Vault
+- Knowledge working with Kubernetes
+
+##### Generate SSL certificates in order to configure encryption is transit
+
+
+
+### Config Example
+
+```yaml
+---
+  ha:
+    enabled: true
+    replicas: ${replicas}
+    raft:
+      enabled: true
+      setNodeId: false
+      config: |
+        ui = true
+
+        listener "tcp" {
+          tls_disable = 0
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+          tls_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
+          tls_key_file  = "/vault/userconfig/vault-ha-tls/vault.key"
+          tls_client_ca_file = "/vault/userconfig/vault-ha-tls/vault.ca"
+        }
+        listener "tcp" {
+          address     = "0.0.0.0:8202"
+          tls_disable = "true"
+        }
+        seal "awskms" {
+          region = "${region}"
+          kms_key_id = "${kms_key_id}"
+        }
+        storage "raft" {
+          path = "/vault/data"
+          retry_join {
+         ---
+        }
+        disable_mlock = true
+        service_registration "kubernetes" {}
+---
+```
