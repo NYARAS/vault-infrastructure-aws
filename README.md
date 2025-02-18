@@ -98,3 +98,16 @@ When having a token be revoked would be problematic, `root` or `sudo` users have
 Vault supports `AWS`, `Azure`, `Google Cloud`, and `Alibaba Cloud` out of the box for secrets engines.
 
 `Storage backends`, `cluster names`, and `seal types` are just a few of the configurations done via the configuration file. The others are configured within Vault itself.
+
+
+#### Setting up Vault HA in AWS 
+
+- Hashicorp Vault will be deployed by Terraform Helm Chart provider into EKS cluster.
+- Vault pods will assume IAM roles via IAM OIDC identity provider and IRSA.
+- RAFT will be used as the backend for Vault.
+- AWS KMS will be used for Vault auto-unseal.
+- KMS is accessible through VPC endpoints.
+- Vault UI will be exposed via Elastic Load Balancer.
+- Vault injector pod will set secret into application pod.
+- Vault writes audit logs (without any sensitive data) into persistent EBS volume.
+- Data encrypted at rest and in transit.
