@@ -162,3 +162,47 @@ Vault supports `AWS`, `Azure`, `Google Cloud`, and `Alibaba Cloud` out of the bo
         service_registration "kubernetes" {}
 ---
 ```
+
+
+
+### Creating the TLS Certificate
+
+#### Create the private key
+```sh
+openssl genrsa -out vault.key 2048
+```
+
+#### Prepare the CSR( Certificate Signing Request) configurations
+
+```yaml
+ cat > vault-csr.conf <<EOF
+[req]
+default_bits = 2048
+prompt = no
+encrypt_key = yes
+default_md = sha256
+distinguished_name = app_serving
+req_extensions = v3_req
+[ app_serving ]
+O = system:nodes
+CN = system:node:*.vault.svc.cluster.local
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = *.vault-internal
+DNS.2 = *.vault-internal.vault.svc.cluster.local
+DNS.3 = *.vault
+DNS.4 = vault
+DNS.5 = vault-active.vault.svc.cluster.local
+IP.1 = 127.0.0.1
+EOF
+```
+
+#### Generate the CSR file
+
+```sh
+openssl req -new -key vault.key -out vault.csr -config vault-csr.conf
+```
