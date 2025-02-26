@@ -206,3 +206,21 @@ EOF
 ```sh
 openssl req -new -key vault.key -out vault.csr -config vault-csr.conf
 ```
+
+##### Create the CSR yaml file
+
+```yaml
+cat <<EOF >vault-csr.yaml
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: vault.svc
+spec:
+  signerName: beta.eks.amazonaws.com/app-serving
+  request: $(cat vault.csr | base64 | tr -d '\n')
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+EOF
+```
