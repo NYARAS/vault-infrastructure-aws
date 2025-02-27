@@ -47,3 +47,29 @@ resource "vault_pki_secret_backend_role" "role" {
  allow_subdomains = true
  allow_any_name   = true
 }
+
+
+# these config URLs are part of the vault pki ecosystem that clients can use to do ongoing checks that certs issued by this CA are not revoked before their expiry time 
+resource "vault_pki_secret_backend_config_urls" "config-urls" {
+ backend                 = vault_mount.pki.path
+ issuing_certificates    = ["http://vault.calvineotieno.com:8200/v1/pki/ca"]
+ crl_distribution_points = ["http://vault.calvineotieno.com:8200/v1/pki/crl"]
+}
+
+# this is establishing the vault mountpoint for the issuing certificate authority
+resource "vault_mount" "pki_int" {
+ path        = "pki_int"
+ type        = "pki"
+ description = "Problem of Network Issuing CA Mount"
+
+ default_lease_ttl_seconds = 86400
+ max_lease_ttl_seconds     = 157680000
+}
+
+# here we build a CSR (key never leaves vault) for that issuing CA
+resource "vault_pki_secret_backend_intermediate_cert_request" "csr-request" {
+ backend     = vault_mount.pki_int.path
+ type        = "internal"
+ common_name = "neuronsw-Issuing-G1"
+ key_bits    = 4096
+}
