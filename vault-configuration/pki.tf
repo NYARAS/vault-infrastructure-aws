@@ -70,6 +70,56 @@ resource "vault_mount" "pki_int" {
 resource "vault_pki_secret_backend_intermediate_cert_request" "csr-request" {
  backend     = vault_mount.pki_int.path
  type        = "internal"
- common_name = "neuronsw-Issuing-G1"
+ common_name = "calvine-Issuing-G1"
  key_bits    = 4096
+}
+
+
+# here we are signing the issuing CA cert from the root CA backend using the CSR we just generated
+resource "vault_pki_secret_backend_root_sign_intermediate" "pon_issuing_g1" {
+ backend     = vault_mount.pki.path
+ common_name = "calvine-Issuing-G1"
+ csr         = vault_pki_secret_backend_intermediate_cert_request.csr-request.csr
+ format      = "pem_bundle"
+ ttl         = 15480000
+ issuer_ref  = vault_pki_secret_backend_root_cert.pon_root_g1.issuer_id
+}
+
+# optional: write the issued certificate out to disk for use in chains
+resource "local_file" "pon_issuing_g1_cert" {
+ content  = vault_pki_secret_backend_root_sign_intermediate.pon_issuing_g1.certificate
+ filename = "pon_issuing_g1.cert.pem"
+}
+
+# now that we have a signed cert from the root CA, we import that into the intermediate pki mountpoint ready for service
+resource "vault_pki_secret_backend_intermediate_set_signed" "pon_issuing_g1" {
+ backend     = vault_mount.pki_int.path
+ certificate = vault_pki_secret_backend_root_sign_intermediate.pon_issuing_g1.certificate
+}
+
+# ...and ensure all the cert is applied to the backend issuer 
+resource "vault_pki_secret_backend_issuer" "pon_issuing_g1" {
+ backend     = vault_mount.pki_int.path
+ issuer_ref  = vault_pki_secret_backend_intermediate_set_signed.pon_issuing_g1.imported_issuers[0]
+ issuer_name = "calvine-Issuing-G1"
+}
+
+# the intermediate backend role is where we will issue our end device certificates from
+resource "vault_pki_secret_backend_role" "pon_issuing_role" {
+ backend          = vault_mount.pki_int.path
+ issuer_ref       = vault_pki_secret_backend_issuer.pon_issuing_g1.issuer_ref
+ # this is the name we will use later to target this role
+ name             = "calvine-dot-com"
+ # valid for as little as 1d or up to 30d
+ ttl              = 86400
+ max_ttl          = 2592000
+ # we let the user request IP SANs (important in networking certs)
+ allow_ip_sans    = true
+ # we hook ourselves to rsa4096
+ key_type         = "rsa"
+ key_bits         = 4096
+ # limited to certs in the calvine.com domain
+ allowed_domains  = ["calvine.com"]
+ # we say we are ok with requests for _something_.calvine.com
+ allow_subdomains = true
 }
