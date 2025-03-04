@@ -223,4 +223,8 @@ spec:
   - key encipherment
   - server auth
 EOF
+<<<<<<< Updated upstream
 ```
+=======
+```
+>>>>>>> Stashed changes
