@@ -15,5 +15,5 @@ EOT
 }
 
 variable "password" {
-  
+
 }
