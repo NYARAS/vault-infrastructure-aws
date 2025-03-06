@@ -190,3 +190,41 @@ variable "default_secret_id_cidr_list" {
   description = "If set, specifies blocks of IP addresses which can perform the login operation using the default SecretID."
   default     = null
 }
+
+variable "cn" {}
+variable "ip_sans" {
+  default = []
+}
+
+variable "root_role_name" {
+  default = "root-sign-issuing-role"
+}
+
+variable "issuing_certificates_urls" {
+  type    = list(string)
+  default = []
+}
+
+variable "crl_distribution_points" {
+  type    = list(string)
+  default = []
+}
+
+variable "secret_backend_intermediate_cn" {
+  default = "calvine-Issuing"
+}
+variable "secret_backend_root_sign_intermediate_cn" {
+  default = "calvine-Issuing"
+}
+variable "secret_backend_issuer_name" {
+  default = "calvine-Issuing"
+}
+
+variable "allowed_domains" {
+  type    = list(string)
+  default = ["calvine.com"]
+}
+
+variable "vault_pki_secret_backend_role_name" {
+  default = "calvine-dot-com"
+}

@@ -1,125 +1,88 @@
-
-# setup the mount point for the Root CA
 resource "vault_mount" "pki" {
- path        = "pki"
- type        = "pki"
- description = "Network Root CA Mount"
- default_lease_ttl_seconds = 86400
- max_lease_ttl_seconds     = 315360000
+  path                      = "pki"
+  type                      = "pki"
+  description               = "Calvine Devops Root CA Mount"
+  default_lease_ttl_seconds = 86400
+  max_lease_ttl_seconds     = 315360000
 }
 
-# create the actual root CA Cert and key
-resource "vault_pki_secret_backend_root_cert" "pon_root_g1" {
- backend     = vault_mount.pki.path
- type        = "internal"
- common_name = "Network Root G1"
- ttl         = 315360000
- issuer_name = "root-g1"
- key_bits    = 4096
+resource "vault_pki_secret_backend_root_cert" "root" {
+  backend     = vault_mount.pki.path
+  type        = "internal"
+  common_name = "Calvine DevOps Root"
+  ttl         = 315360000
+  issuer_name = "root-g1"
+  key_bits    = 4096
 }
 
-# write this certificate to the terraform folder so we can use it elsewhere
-resource "local_file" "pon_root_g1_cert" {
- content  = vault_pki_secret_backend_root_cert.pon_root_g1.certificate
- filename = "root_ca_g1.crt"
+resource "vault_pki_secret_backend_issuer" "root" {
+  backend                        = vault_mount.pki.path
+  issuer_ref                     = vault_pki_secret_backend_root_cert.root.issuer_id
+  issuer_name                    = vault_pki_secret_backend_root_cert.root.issuer_name
+  revocation_signature_algorithm = "SHA256WithRSA"
 }
 
-# optional: show this back to the user at runtime
-output "root_ca_certificate" {
- value = vault_pki_secret_backend_root_cert.pon_root_g1.certificate
-}
-
-# the backend issuer is the element of the vault pki that enables people to requests issuing certs against this root 
-resource "vault_pki_secret_backend_issuer" "pon_root_g1" {
- backend                        = vault_mount.pki.path
- issuer_ref                     = vault_pki_secret_backend_root_cert.pon_root_g1.issuer_id
- issuer_name                    = vault_pki_secret_backend_root_cert.pon_root_g1.issuer_name
- revocation_signature_algorithm = "SHA256WithRSA"
-}
-
-# the backend role is the api parameters that are allowed to be used when signing issuing certs
 resource "vault_pki_secret_backend_role" "role" {
- backend          = vault_mount.pki.path
- name             = "root-sign-issuing-role"
- allow_ip_sans    = true
- key_type         = "rsa"
- key_bits         = 4096
- allow_subdomains = true
- allow_any_name   = true
+  backend          = vault_mount.pki.path
+  name             = var.root_role_name
+  allow_ip_sans    = true
+  key_type         = "rsa"
+  key_bits         = 4096
+  allow_subdomains = true
+  allow_any_name   = true
 }
 
-
-# these config URLs are part of the vault pki ecosystem that clients can use to do ongoing checks that certs issued by this CA are not revoked before their expiry time 
 resource "vault_pki_secret_backend_config_urls" "config-urls" {
- backend                 = vault_mount.pki.path
- issuing_certificates    = ["http://vault.calvineotieno.com:8200/v1/pki/ca"]
- crl_distribution_points = ["http://vault.calvineotieno.com:8200/v1/pki/crl"]
+  backend                 = vault_mount.pki.path
+  issuing_certificates    = var.issuing_certificates_urls
+  crl_distribution_points = var.crl_distribution_points
 }
 
-# this is establishing the vault mountpoint for the issuing certificate authority
 resource "vault_mount" "pki_int" {
- path        = "pki_int"
- type        = "pki"
- description = "Problem of Network Issuing CA Mount"
+  path        = "pki_int"
+  type        = "pki"
+  description = "Calvine Issuing CA Mount"
 
- default_lease_ttl_seconds = 86400
- max_lease_ttl_seconds     = 157680000
+  default_lease_ttl_seconds = 86400
+  max_lease_ttl_seconds     = 157680000
 }
 
-# here we build a CSR (key never leaves vault) for that issuing CA
 resource "vault_pki_secret_backend_intermediate_cert_request" "csr-request" {
- backend     = vault_mount.pki_int.path
- type        = "internal"
- common_name = "calvine-Issuing-G1"
- key_bits    = 4096
+  backend     = vault_mount.pki_int.path
+  type        = "internal"
+  common_name = var.secret_backend_intermediate_cn
+  key_bits    = 4096
 }
 
-
-# here we are signing the issuing CA cert from the root CA backend using the CSR we just generated
-resource "vault_pki_secret_backend_root_sign_intermediate" "pon_issuing_g1" {
- backend     = vault_mount.pki.path
- common_name = "calvine-Issuing-G1"
- csr         = vault_pki_secret_backend_intermediate_cert_request.csr-request.csr
- format      = "pem_bundle"
- ttl         = 15480000
- issuer_ref  = vault_pki_secret_backend_root_cert.pon_root_g1.issuer_id
+resource "vault_pki_secret_backend_root_sign_intermediate" "issuing" {
+  backend     = vault_mount.pki.path
+  common_name = var.secret_backend_root_sign_intermediate_cn
+  csr         = vault_pki_secret_backend_intermediate_cert_request.csr-request.csr
+  format      = "pem_bundle"
+  ttl         = 15480000
+  issuer_ref  = vault_pki_secret_backend_root_cert.root.issuer_id
 }
 
-# optional: write the issued certificate out to disk for use in chains
-resource "local_file" "pon_issuing_g1_cert" {
- content  = vault_pki_secret_backend_root_sign_intermediate.pon_issuing_g1.certificate
- filename = "pon_issuing_g1.cert.pem"
+resource "vault_pki_secret_backend_intermediate_set_signed" "issuing" {
+  backend     = vault_mount.pki_int.path
+  certificate = vault_pki_secret_backend_root_sign_intermediate.issuing.certificate
 }
 
-# now that we have a signed cert from the root CA, we import that into the intermediate pki mountpoint ready for service
-resource "vault_pki_secret_backend_intermediate_set_signed" "pon_issuing_g1" {
- backend     = vault_mount.pki_int.path
- certificate = vault_pki_secret_backend_root_sign_intermediate.pon_issuing_g1.certificate
+resource "vault_pki_secret_backend_issuer" "issuing" {
+  backend     = vault_mount.pki_int.path
+  issuer_ref  = vault_pki_secret_backend_intermediate_set_signed.issuing.imported_issuers[0]
+  issuer_name = var.secret_backend_issuer_name
 }
 
-# ...and ensure all the cert is applied to the backend issuer 
-resource "vault_pki_secret_backend_issuer" "pon_issuing_g1" {
- backend     = vault_mount.pki_int.path
- issuer_ref  = vault_pki_secret_backend_intermediate_set_signed.pon_issuing_g1.imported_issuers[0]
- issuer_name = "calvine-Issuing-G1"
-}
-
-# the intermediate backend role is where we will issue our end device certificates from
-resource "vault_pki_secret_backend_role" "pon_issuing_role" {
- backend          = vault_mount.pki_int.path
- issuer_ref       = vault_pki_secret_backend_issuer.pon_issuing_g1.issuer_ref
- # this is the name we will use later to target this role
- name             = "calvine-dot-com"
- # valid for as little as 1d or up to 30d
- ttl              = 86400
- max_ttl          = 2592000
- # we let the user request IP SANs (important in networking certs)
- allow_ip_sans    = true
- # we hook ourselves to rsa4096
- key_type         = "rsa"
- key_bits         = 4096
- # limited to certs in the calvine.com domain
- allowed_domains  = ["calvine.com"]
- # we say we are ok with requests for _something_.calvine.com
- allow_subdomains = true
+resource "vault_pki_secret_backend_role" "issuing_role" {
+  backend          = vault_mount.pki_int.path
+  issuer_ref       = vault_pki_secret_backend_issuer.issuing.issuer_ref
+  name             = var.vault_pki_secret_backend_role_name
+  ttl              = 86400
+  max_ttl          = 2592000
+  allow_ip_sans    = true
+  key_type         = "rsa"
+  key_bits         = 4096
+  allowed_domains  = var.allowed_domains
+  allow_subdomains = true
 }
