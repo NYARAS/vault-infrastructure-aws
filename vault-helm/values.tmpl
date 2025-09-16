@@ -3,7 +3,8 @@ global:
 
 server:
   serviceAccount:
-    annotations: {}
+    annotations:
+      eks.amazonaws.com/role-arn: ${vault_iam_role_arn}
   dataStorage:
     enabled: true
   standalone:
@@ -43,7 +44,7 @@ server:
     enabled: true
     labels: {}
     annotations: |
-      cert-manager.io/cluster-issuer: letsencrypt
+      cert-manager.io/cluster-issuer: letsencrypt-prod
       kubernetes.io/ingress.class: nginx
     ingressClassName: nginx
     pathType: Prefix
