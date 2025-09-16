@@ -10,25 +10,9 @@ variable "remote_state" {
     })
   })
 }
-variable "backend_config" {
-  description = "Remote state data for eks"
-  type = object({
-    s3 = object({
-      bucket               = string
-      key                  = string
-      region               = string
-      workspace_key_prefix = optional(string)
-      dynamodb_table       = string
-    })
-  })
-}
+
 variable "vault_node_count" {
   description = "The number of vault replicas to run."
-  default     = "1"
-}
-
-variable "consul_node_count" {
-  description = "The number of consul replicas to run."
   default     = "1"
 }
 
@@ -70,7 +54,13 @@ variable "gitlab_pipeline_aws_assume_role" {
   default = "gitlab-pipeline-aws-assume-role"
 }
 
-variable "aws_acm" {
-  type        = string
-  description = "AWS Certificate Manager ARN."
+variable "trust_principals" {
+  description = "List of ARNs that can assume the role"
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for arn in var.trust_principals : can(regex("^arn:aws:iam::[0-9]{12}:role/.+$", arn))])
+    error_message = "Each trust principal must be a valid AWS IAM Role ARN (e.g., arn:aws:iam::123456789012:role/role-name)."
+  }
 }
