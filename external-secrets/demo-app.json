@@ -1,0 +1,6 @@
+{
+    "DB_USER": "openinfra",
+    "DB_PASSWORD": "openinfraday.2025",
+    "DB_HOST": "openinfra.fake.eu-west-1.rds.amazonaws.com",
+    "DB_NAME": "userdb"
+}
