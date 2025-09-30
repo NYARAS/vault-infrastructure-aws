@@ -33,8 +33,8 @@ resource "helm_release" "vault" {
         "vault_server_host" = var.vault_server_host
         kms_key_id          = aws_kms_key.vault.key_id
         region              = var.region
-        aws_acm             = var.aws_acm
-        vault_iam_role_arn  = module.vault_service_account_role.iam_role_arn
+        # aws_acm             = var.aws_acm
+        vault_iam_role_arn = module.vault_service_account_role.iam_role_arn
       }
     )
   ]
@@ -65,7 +65,7 @@ resource "aws_iam_policy" "vault_service_account_policy" {
           "kms:DescribeKey"
         ]
         Effect   = "Allow"
-        Resource = aws_kms_key.vault.arn
+        Resource = "*"
       }
     ]
   })
@@ -77,7 +77,8 @@ resource "aws_iam_policy" "vault_service_account_policy" {
 
 # AWS IAM role used for the Vault service account
 module "vault_service_account_role" {
-  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.44.0"
 
   role_name = var.service_account_role_name
   role_policy_arns = {
@@ -114,8 +115,11 @@ data "aws_iam_policy_document" "pipeline_trust_policy" {
     actions = ["sts:AssumeRole"]
 
     principals {
-      type        = "AWS"
-      identifiers = [module.vault_service_account_role.iam_role_arn]
+      type = "AWS"
+      identifiers = concat(
+        [module.vault_service_account_role.iam_role_arn],
+        var.trust_principals
+      )
     }
   }
 }
@@ -129,7 +133,17 @@ resource "aws_iam_role_policy" "pipeline_policy" {
     Statement = [
       {
         Action = [
+          "s3:*",
+          "dynamodb:*",
           "ec2:*",
+          "rds:*",
+          "eks:DescribeCluster",
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:PutImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload"
         ]
         Effect   = "Allow"
         Resource = "*"
