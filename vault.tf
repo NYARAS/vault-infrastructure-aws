@@ -132,22 +132,10 @@ resource "aws_iam_role_policy" "pipeline_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = [
-          "s3:*",
-          "dynamodb:*",
-          "ec2:*",
-          "rds:*",
-          "eks:DescribeCluster",
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:PutImage",
-          "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload"
-        ]
+        Action   = var.pipeline_policy_actions
         Effect   = "Allow"
         Resource = "*"
-      },
+      }
     ]
   })
 }
