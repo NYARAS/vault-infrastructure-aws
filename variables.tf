@@ -64,3 +64,21 @@ variable "trust_principals" {
     error_message = "Each trust principal must be a valid AWS IAM Role ARN (e.g., arn:aws:iam::123456789012:role/role-name)."
   }
 }
+
+variable "pipeline_policy_actions" {
+  type        = list(string)
+  description = "List of IAM actions allowed for the pipeline policy"
+  default = [
+    "s3:*",
+    "dynamodb:*",
+    "ec2:*",
+    "rds:*",
+    "eks:DescribeCluster",
+    "ecr:GetAuthorizationToken",
+    "ecr:BatchCheckLayerAvailability",
+    "ecr:PutImage",
+    "ecr:InitiateLayerUpload",
+    "ecr:UploadLayerPart",
+    "ecr:CompleteLayerUpload"
+  ]
+}
